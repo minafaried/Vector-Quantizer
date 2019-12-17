@@ -1,7 +1,6 @@
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
@@ -20,9 +19,9 @@ public class Main {
 				for (int j = 0; j < height; j++) {
 					rgp = image.getRGB(i, j);
 					pixels[i][j] = rgp & 0xffffff;
-					System.out.print(pixels[i][j] + " ");
+					//System.out.print(pixels[i][j] + " ");
 				}
-				System.out.println();
+				//System.out.println();
 			}
 			image_data imagedata = new image_data(width, height, pixels);
 
@@ -54,15 +53,27 @@ public class Main {
 		return res;
 	}
 
+	public static boolean notempty(int[][]arr,int w,int h) {
+		
+		for (int i = 0; i < w; i++) {
+			for (int j = 0; j < h; j++) {
+				if(arr[i][j]!=0) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	public static ArrayList<vector> code(image_data imagedata, int width, int height, int codebook) {
 
 		// Create Array Of Vectors
 		int[][][] vectors = new int[imagedata.width / width * imagedata.height / height][width][height];
-
+		int remwidth=imagedata.width%width;
+		int remheigth=imagedata.height%height;
 		// Divide into Vectors and fill The Array Of Vectors
 		int count = 0;
-		for (int i = 0; i < imagedata.width; i += width) {
-			for (int j = 0; j < imagedata.width; j += height) {
+		for (int i = 0; i < imagedata.width-remwidth; i += width) {
+			for (int j = 0; j < imagedata.height-remheigth; j += height) {
 				for (int a = 0; a < width; a++) {
 					for (int b = 0; b < height; b++) {
 						// System.out.println(i+" "+j);
@@ -73,7 +84,7 @@ public class Main {
 			}
 		}
 
-		//System.out.println("\n\n\n" + count);
+		System.out.println("\n\n\n" + count);
 		int[][] tempvector = new int[width][height];
 		for (int c = 0; c < count; c++) {
 			for (int i = 0; i < width; i++) {
@@ -88,15 +99,18 @@ public class Main {
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				tempvector[i][j] /= count;
-				// System.out.print(tempvector[i][j] + " ");
+				 //System.out.print(tempvector[i][j] + " ");
 			}
+			 //System.out.println("\n");
 		}
+
 		// System.out.println();
 		ArrayList<vector> Splitvectors = new ArrayList<vector>();
 		Splitvectors.add(new vector(width, height, tempvector));
 		int splitecount = 1;
 		int countaffterfinsh = 0;
 		while (true) {
+
 			if (countaffterfinsh == 0) {
 				for (int i = 0; i < splitecount; i++) {
 					int[][] v = incrementvalue(width, height, Splitvectors.get(i).v);
@@ -111,13 +125,17 @@ public class Main {
 					Splitvectors.remove(0);
 				}
 			}
-			int[][][][] avragevector = new int[Splitvectors.size()][100000][width][height];
+//			for (int i = 0; i < Splitvectors.size(); i++) {
+//				System.out.println(Splitvectors.get(i).v[0][0]);
+//			}
+//			System.out.println();
+			int[][][][] avragevector = new int[Splitvectors.size()][1000][width][height];
 			ArrayList<vector> avrageres = new ArrayList<vector>();
-
+			//System.out.println("Splitvectors.size()"+Splitvectors.size());
 			for (int c = 0; c < count; c++) {
-				int[] value = new int[Splitvectors.size()];
+				double [] value = new double[Splitvectors.size()];
 				int minindex = 0;
-				int max = 100000;
+				double max = 100000;
 				for (int i = 0; i < width; i++) {
 					for (int j = 0; j < height; j++) {
 						for (int j2 = 0; j2 < Splitvectors.size(); j2++) {
@@ -127,19 +145,26 @@ public class Main {
 				}
 				// System.out.println();
 				for (int i = 0; i < Splitvectors.size(); i++) {
-					value[i] = (int) Math.sqrt(value[i]);
-					if (value[i] < max) {
+					value[i] =  Math.sqrt(value[i]);
+					// System.out.print("value: "+value[i] + " ");
+				}
+				
+				// System.out.println("\n");
+				for (int i = 0; i < Splitvectors.size(); i++) {
+     					if (value[i] <= max) {
 						minindex = i;
 						max = value[i];
 					}
-					// System.out.print(value[i] + " ");
+					// System.out.print("value: "+value[i] + " ");
 				}
-				// System.out.println("\n");
-				for (int t = 0; t < 100000; t++) {
-					if (avragevector[minindex][t][0][0] == 0) {
+				//System.out.println("minindex"+minindex);
+				for (int t = 0; t < 1000; t++) {
+					if (!notempty(avragevector[minindex][t], width, height)) {
 						// System.out.println(t);
+						
 						for (int i = 0; i < width; i++) {
 							for (int j = 0; j < height; j++) {
+								
 								avragevector[minindex][t][i][j] = vectors[c][i][j];
 							}
 						}
@@ -151,7 +176,7 @@ public class Main {
 
 			}
 //			for (int i = 0; i < Splitvectors.size(); i++) {
-//				for (int j = 0; j < 100000; j++) {
+//				for (int j = 0; j < 1000; j++) {
 //					if (avragevector[i][j][0][0] != 0) {
 //						// System.out.println(t);
 //						for (int i1 = 0; i1 < width; i1++) {
@@ -161,26 +186,27 @@ public class Main {
 //						}
 //						System.out.println();
 //					}
-//					else break;
+//					//else break;
 //				}
 //				System.out.println("\n");
 //			}
 			int[][][] res = new int[Splitvectors.size()][width][height];
 
 			for (int i = 0; i < Splitvectors.size(); i++) {
+				//System.out.println(res[i][j2][k]);
 				int counter = 0;
-				for (int j = 0; j < 100000; j++) {
+				for (int j = 0; j < 1000; j++) {
 
-					if (avragevector[i][j][0][0] != 0) {
+					if (notempty(avragevector[i][j], width, height)) {
 						for (int j2 = 0; j2 < width; j2++) {
 							for (int k = 0; k < height; k++) {
 								res[i][j2][k] += avragevector[i][j][j2][k];
+								
 							}
 						}
 						counter++;
 
-					} else
-						break;
+					} 
 				}
 				if (counter != 0) {
 
@@ -190,29 +216,37 @@ public class Main {
 						}
 					}
 
-//					for (int e = 0; e < avrageres.size(); e++) {
-//						avrageres.get(e).dispaly();
-//					}
+
 				}
 				// System.out.println();
 
 			}
 			for (int i1 = 0; i1 < Splitvectors.size(); i1++) {
 				avrageres.add(new vector(width, height, res[i1]));
+				//System.out.println(res[i1][0][0]);
 			}
+
+//			for (int e = 0; e < avrageres.size(); e++) {
+//			avrageres.get(e).dispaly();
+//		}
 			// System.out.println("Splitvectors" + Splitvectors.size() + "avrageres.size()"
 			// + avrageres.size());
 			Splitvectors.clear();
 			for (int i = 0; i < avrageres.size(); i++) {
 				Splitvectors.add(new vector(width, height, avrageres.get(i).v));
 			}
-//			for (int e = 0; e < avrageres.size(); e++) {
-//				Splitvectors.get(e).dispaly();
+//			for (int i = 0; i < Splitvectors.size(); i++) {
+//				System.out.println(Splitvectors.get(i).v[0][0]);
 //			}
-//			System.out.println("\n\n");
+//			System.out.println();
+			//System.out.println("countaffterfinsh :"+countaffterfinsh);
+//			for (int i = 0; i < splitecount ; i++) {
+//				Splitvectors.get(i).dispaly();
+//			}
+			//System.out.println("\n\n");
 			avrageres.clear();
 			if (Splitvectors.size() >= codebook) {
-				if (countaffterfinsh == 3) {
+				if (countaffterfinsh == 2) {
 					break;
 				} else {
 					countaffterfinsh++;
@@ -240,7 +274,7 @@ public class Main {
 //	27 28 
 //	35 36 
 	public static void main(String[] args) {
-		// image_data imagedata = readimage("1.jpg");
+		 image_data imagedata = readimage("1.jpg");
 		int[][] w = new int[8][8];
 		int c = 1;
 		for (int i = 0; i < 8; i++) {
@@ -255,7 +289,7 @@ public class Main {
 
 		image_data d = new image_data(8, 8, w);
 		System.out.println("\n");
-		ArrayList<vector> finalvectors = code(d, 4, 4, 4);
+		ArrayList<vector> finalvectors = code(d,2, 2, 4);
 		for (int e = 0; e < finalvectors.size(); e++) {
 			finalvectors.get(e).dispaly();
 		}
